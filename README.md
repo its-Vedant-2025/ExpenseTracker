@@ -1,30 +1,14 @@
 # Personal Expense Tracker
 
-A simple, modular Command Line Interface (CLI) application built using core Java to track daily expenses, categorize spending, and save data locally. 
+A lightweight, console-based Personal Expense Tracker built in core Java. It allows users to record daily expenses, monitor a monthly spending budget with real-time balance updates, and persist transaction records locally.
 
-Built this project as a 2nd-year engineering student to practice core Object-Oriented Programming (OOP) concepts, file handling, and package structuring in Java.
+## Features
 
----
-
-## Why I Built This
-
-I wanted to move beyond basic classroom coding problems and build a functional, real-world utility from scratch. This project helped me get hands-on experience with:
-- **OOP Principles**: Designing separated domain models (`Expense`) and business controllers (`ExpenseManager`).
-- **Data Persistence**: Implementing basic CSV file reading and writing using `BufferedReader` and `BufferedWriter` so data persists between runs.
-- **Defensive Input Handling**: Catching runtime exceptions (`DateTimeParseException`, `InputMismatchException`) so the terminal loop doesn't crash on bad inputs.
-- **Java Time API**: Working with `LocalDate` and `DateTimeFormatter` for handling transaction dates.
-
----
-
-## What It Can Do
-
-- **Add New Expenses**: Log transaction amount, category, date (defaults to today if left blank), and a note.
-- **View All Logs**: Print all recorded expenses in a clear format.
-- **Category Search**: Filter transactions by type (*Food, Travel, Shopping, Bills, Entertainment, Others*).
-- **Spending Summary**: Automatically calculates category totals and overall expenditure.
-- **Save & Load**: Saves records to `expenses.txt` on exit and automatically reloads them whenever the program starts.
-
----
+- **Add Expense**: Log transactions with amount, category, date (`DD-MM-YYYY`), and description.
+- **View Expense**: Display all logged expenses along with cumulative total expenditure.
+- **Set Monthly Expense**: Configure a monthly spending budget. When logging expenses, it calculates the total for that specific month and displays the remaining balance (or alerts if overspent).
+- **Delete Expense**: View existing records and remove entries by ID.
+- **Data Persistence**: Automatically loads and saves all expense entries to a local `expenses.txt` file.
 
 ## Project Structure
 
@@ -32,44 +16,39 @@ I wanted to move beyond basic classroom coding problems and build a functional, 
 ExpenseTracker/
 ├── src/
 │   └── expense/
-│       ├── Expense.java            # Expense model class (getters, setters, formatting)
-│       ├── ExpenseManager.java     # Core logic (add, delete, filter, summary)
-│       ├── ExpenseTrackerApp.java  # Main CLI menu loop and user prompts
-│       └── FileHandler.java        # Handles file I/O (save/load from expenses.txt)
-├── .gitignore                      # Ignores .class files and local data
+│       ├── Expense.java           # Model class representing an expense record
+│       ├── ExpenseManager.java    # Business logic for tracking, summing, and budgets
+│       ├── FileHandler.java       # Handles reading and writing to expenses.txt
+│       └── ExpenseTrackerApp.java # CLI menu and user interactions
+├── expenses.txt                   # Local storage file (generated on save)
 └── README.md
 ```
 
----
+## How to Run
 
-## How to Run Locally
+1. Clone the repository:
+```bash
+git clone https://github.com/its-Vedant-2025/ExpenseTracker.git
+cd ExpenseTracker
+```
 
-### Requirements
-- Java Development Kit (JDK 8 or above)
-- Terminal / VS Code
+2. Compile the source code:
+```bash
+javac -d src src/expense/*.java
+```
 
-### Steps
+3. Run the application:
+```bash
+java -cp src expense.ExpenseTrackerApp
+```
 
-1. **Clone the repo:**
-   ```bash
-   git clone [https://github.com/its-Vedant-2025/ExpenseTracker.git](https://github.com/its-Vedant-2025/ExpenseTracker.git)
-   cd ExpenseTracker
-   ```
+## Menu Options
 
-2. **Compile the files:**
-   ```bash
-   javac -d src src/expense/*.java
-   ```
-
-3. **Run the app:**
-   ```bash
-   java -cp src expense.ExpenseTrackerApp
-   ```
-
----
-
-## What's Next / Future Improvements
-
-- Add a graphical interface (JavaFX / Swing).
-- Export summaries into CSV or PDF format.
-- Add monthly expense budgets and alert limits.
+```text
+=== EXPENSE TRACKER ===
+1. Add Expense
+2. View Expense
+3. Set Monthly Expense
+4. Delete Expense
+5. Save and Exit
+```
