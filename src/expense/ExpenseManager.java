@@ -14,9 +14,63 @@ public class ExpenseManager {
     // Auto-incrementing counter tracking transaction IDs
     private int nextId;
 
+    // Monthly spending budget limit (0.0 means not set)
+    private double monthlyBudget;
+
     public ExpenseManager() {
         this.expenses = new ArrayList<>();
         this.nextId = 1;
+        this.monthlyBudget = 0.0;
+    }
+
+    /**
+     * Sets or updates the monthly budget threshold.
+     */
+    public void setMonthlyBudget(double monthlyBudget) {
+        this.monthlyBudget = monthlyBudget;
+    }
+
+    /**
+     * Returns the current monthly budget.
+     */
+    public double getMonthlyBudget() {
+        return monthlyBudget;
+    }
+
+    /**
+     * Calculates total expenses recorded in the current calendar month and year.
+     */
+    public double getCurrentMonthTotal() {
+        LocalDate now = LocalDate.now();
+        double sum = 0.0;
+        for (Expense e : expenses) {
+            if (e.getDate().getMonth() == now.getMonth() && e.getDate().getYear() == now.getYear()) {
+                sum += e.getAmount();
+            }
+        }
+        return sum;
+    }
+
+    /**
+     * Evaluates spending against the monthly budget limit.
+     * Returns a warning message string if threshold is hit, or null if within budget.
+     */
+    public String checkBudgetAlert() {
+        if (monthlyBudget <= 0.0) {
+            return null; // Budget not configured
+        }
+
+        double currentTotal = getCurrentMonthTotal();
+        double percentage = (currentTotal / monthlyBudget) * 100.0;
+
+        if (percentage >= 100.0) {
+            return String.format("[!] ALERT: You have exceeded your monthly budget of Rs. %.2f! (Spent: Rs. %.2f - %.1f%%)",
+                    monthlyBudget, currentTotal, percentage);
+        } else if (percentage >= 80.0) {
+            return String.format("[!] WARNING: You have reached %.1f%% of your monthly budget of Rs. %.2f! (Spent: Rs. %.2f)",
+                    percentage, monthlyBudget, currentTotal);
+        }
+        return null;
     }
 
     /**
