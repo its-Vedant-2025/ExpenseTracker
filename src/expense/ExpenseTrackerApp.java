@@ -37,7 +37,7 @@ public class ExpenseTrackerApp {
                 sc.nextLine(); // Discard faulty input
                 continue;
             }
-            sc.nextLine(); // Clear newline buffer after reading integer
+            sc.nextLine(); // Clear newline buffer
 
             switch (choice) {
                 case 1:
@@ -55,7 +55,7 @@ public class ExpenseTrackerApp {
                     System.out.print("Enter Expense ID to delete: ");
                     try {
                         int id = sc.nextInt();
-                        sc.nextLine(); // Clear buffer
+                        sc.nextLine();
                         manager.deleteExpense(id);
                     } catch (Exception e) {
                         System.out.println("Invalid ID! ID must be an integer.");
@@ -72,7 +72,6 @@ public class ExpenseTrackerApp {
                     handleBudget(sc, manager);
                     break;
                 case 8:
-                    // Persist state to local file before shutdown
                     FileHandler.saveExpenses(manager.getExpenses());
                     System.out.println("Thank you for using Expense Tracker!");
                     sc.close();
@@ -103,8 +102,7 @@ public class ExpenseTrackerApp {
             System.out.print("Enter date (dd-MM-yyyy) or press Enter for today: ");
             String dateInput = sc.nextLine().trim();
             LocalDate date;
-            
-            // Default to current system date if input string is left blank
+
             if (dateInput.isEmpty()) {
                 date = LocalDate.now();
             } else {
@@ -117,33 +115,36 @@ public class ExpenseTrackerApp {
 
             manager.addExpense(amount, category, date, description);
 
-            // Check budget alert after successfully adding expense
-            String alert = manager.checkBudgetAlert();
-            if (alert != null) {
-                System.out.println("\n" + alert);
+            // Print spent vs remaining info for this expense's month
+            String budgetMessage = manager.getBudgetStatus(date);
+            if (budgetMessage != null) {
+                System.out.println("\n" + budgetMessage);
             }
         } catch (DateTimeParseException e) {
             System.out.println("Invalid date format! Please use dd-MM-yyyy.");
         } catch (Exception e) {
             System.out.println("Invalid input! Please check your values and try again.");
-            sc.nextLine(); // Clear buffer
+            sc.nextLine();
         }
     }
 
     /**
-     * View current budget metrics and set a new monthly budget limit.
+     * View and configure monthly budget limit.
      */
     private static void handleBudget(Scanner sc, ExpenseManager manager) {
+        LocalDate today = LocalDate.now();
+        String currentMonthName = today.getMonth().name() + " " + today.getYear();
+
         System.out.println("\n====== Monthly Budget Management ======");
-        System.out.printf("Current Month Spending: Rs. %.2f\n", manager.getCurrentMonthTotal());
         if (manager.getMonthlyBudget() > 0) {
-            System.out.printf("Active Monthly Budget : Rs. %.2f\n", manager.getMonthlyBudget());
-            String alert = manager.checkBudgetAlert();
-            if (alert != null) {
-                System.out.println(alert);
+            System.out.printf("Configured Monthly Budget : Rs. %.2f\n", manager.getMonthlyBudget());
+            System.out.printf("Current Month Spending (%s): Rs. %.2f\n", currentMonthName, manager.getCurrentMonthTotal());
+            String status = manager.getBudgetStatus(today);
+            if (status != null) {
+                System.out.println(status);
             }
         } else {
-            System.out.println("Active Monthly Budget : Not Set");
+            System.out.println("Configured Monthly Budget : Not Set");
         }
 
         System.out.print("\nEnter new monthly budget limit (or 0 to keep current): Rs. ");
@@ -152,15 +153,11 @@ public class ExpenseTrackerApp {
             if (newBudget > 0) {
                 manager.setMonthlyBudget(newBudget);
                 System.out.printf("Monthly budget updated to Rs. %.2f successfully!\n", newBudget);
-                String alert = manager.checkBudgetAlert();
-                if (alert != null) {
-                    System.out.println("\n" + alert);
-                }
             } else {
                 System.out.println("Budget unchanged.");
             }
         } catch (NumberFormatException e) {
-            System.out.println("Invalid amount entered. Returning to menu.");
+            System.out.println("Invalid amount. Returning to menu.");
         }
     }
 }

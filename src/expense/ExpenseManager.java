@@ -8,13 +8,10 @@ import java.util.List;
  * Controller class managing in-memory business logic and operations on expenses.
  */
 public class ExpenseManager {
-    // Dynamic container holding all active expense items
     private List<Expense> expenses;
-    
-    // Auto-incrementing counter tracking transaction IDs
     private int nextId;
 
-    // Monthly spending budget limit (0.0 means not set)
+    // Single global monthly budget limit
     private double monthlyBudget;
 
     public ExpenseManager() {
@@ -31,20 +28,19 @@ public class ExpenseManager {
     }
 
     /**
-     * Returns the current monthly budget.
+     * Returns the configured monthly budget.
      */
     public double getMonthlyBudget() {
         return monthlyBudget;
     }
 
     /**
-     * Calculates total expenses recorded in the current calendar month and year.
+     * Calculates total expenses recorded in the target month and year.
      */
-    public double getCurrentMonthTotal() {
-        LocalDate now = LocalDate.now();
+    public double getMonthTotal(LocalDate targetDate) {
         double sum = 0.0;
         for (Expense e : expenses) {
-            if (e.getDate().getMonth() == now.getMonth() && e.getDate().getYear() == now.getYear()) {
+            if (e.getDate().getMonth() == targetDate.getMonth() && e.getDate().getYear() == targetDate.getYear()) {
                 sum += e.getAmount();
             }
         }
@@ -52,25 +48,36 @@ public class ExpenseManager {
     }
 
     /**
-     * Evaluates spending against the monthly budget limit.
-     * Returns a warning message string if threshold is hit, or null if within budget.
+     * Calculates total expenses recorded in the current system month and year.
      */
-    public String checkBudgetAlert() {
+    public double getCurrentMonthTotal() {
+        return getMonthTotal(LocalDate.now());
+    }
+
+    /**
+     * Generates a status message with spent amount and remaining balance for the expense's month.
+     */
+    public String getBudgetStatus(LocalDate targetDate) {
         if (monthlyBudget <= 0.0) {
-            return null; // Budget not configured
+            return null; // Budget not set yet
         }
 
-        double currentTotal = getCurrentMonthTotal();
-        double percentage = (currentTotal / monthlyBudget) * 100.0;
+        double totalSpent = getMonthTotal(targetDate);
+        String monthName = targetDate.getMonth().name() + " " + targetDate.getYear();
 
-        if (percentage >= 100.0) {
-            return String.format("[!] ALERT: You have exceeded your monthly budget of Rs. %.2f! (Spent: Rs. %.2f - %.1f%%)",
-                    monthlyBudget, currentTotal, percentage);
-        } else if (percentage >= 80.0) {
-            return String.format("[!] WARNING: You have reached %.1f%% of your monthly budget of Rs. %.2f! (Spent: Rs. %.2f)",
-                    percentage, monthlyBudget, currentTotal);
+        if (totalSpent > monthlyBudget) {
+            double overspent = totalSpent - monthlyBudget;
+            return String.format("[!] ALERT: You have exceeded your budget for %s!\n" +
+                                 "    Total Spent: Rs. %.2f | Budget: Rs. %.2f\n" +
+                                 "    Overspent by: Rs. %.2f",
+                                 monthName, totalSpent, monthlyBudget, overspent);
+        } else {
+            double remaining = monthlyBudget - totalSpent;
+            return String.format("[i] Budget Update for %s:\n" +
+                                 "    Total Spent: Rs. %.2f of Rs. %.2f\n" +
+                                 "    Remaining  : Rs. %.2f",
+                                 monthName, totalSpent, monthlyBudget, remaining);
         }
-        return null;
     }
 
     /**
@@ -139,7 +146,7 @@ public class ExpenseManager {
 
         System.out.println("\n====== Category-wise Summary ======");
         String[] categories = {"Food", "Travel", "Shopping", "Bills", "Entertainment", "Others"};
-        
+
         for (String cat : categories) {
             double total = 0;
             for (Expense e : expenses) {
@@ -164,18 +171,13 @@ public class ExpenseManager {
         return total;
     }
 
-    // Accessor for file serialization
     public List<Expense> getExpenses() {
         return expenses;
     }
 
-    /**
-     * Sets in-memory records and recalculates nextId to avoid primary key collisions.
-     */
     public void setExpenses(List<Expense> expenses) {
         this.expenses = expenses;
         if (!expenses.isEmpty()) {
-            // Pick highest existing ID to avoid duplicate primary keys
             int maxId = 0;
             for (Expense e : expenses) {
                 if (e.getId() > maxId) {
