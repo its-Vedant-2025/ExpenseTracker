@@ -1,0 +1,11 @@
+# Ignore compiled Java class files
+*.class
+bin/
+
+# Ignore generated transaction data
+expenses.txt
+
+# Ignore IDE and OS metadata
+.vscode/
+.idea/
+*.DS_Store
